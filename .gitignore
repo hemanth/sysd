@@ -9,4 +9,7 @@ blob-report/
 *.webm
 *.gif
 *.wav
+*.srt
+*.vtt
+*.ass
 .DS_Store

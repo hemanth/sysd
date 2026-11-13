@@ -280,6 +280,7 @@ export class VoicePipelineController {
   private startInterimRecognition() {
     try {
       const w = globalThis as Record<string, any>;
+      if (typeof navigator !== 'undefined' && navigator.webdriver) return;
       const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
       if (!Ctor) return;
       const rec = new Ctor();

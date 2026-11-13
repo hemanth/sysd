@@ -978,6 +978,13 @@ export function App() {
     return null;
   }, [messages]);
 
+  const latestVoiceCandidateMsg = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'candidate' && messages[i].source === 'voice') return messages[i];
+    }
+    return null;
+  }, [messages]);
+
   const warnFinding = useMemo(
     () => graph.findings.find((f) => f.severity === 'warn'),
     [graph.findings],
@@ -1313,6 +1320,7 @@ export function App() {
                     <div className="interviewer-controls">
                       <button
                         type="button"
+                        id="voice-toggle-btn"
                         className={`mini-action-btn ${voiceStatus.state !== 'off' ? 'live' : ''}`}
                         onClick={() => void toggleVoice()}
                         aria-pressed={voiceStatus.state !== 'off'}
@@ -1347,9 +1355,45 @@ export function App() {
                     </div>
                   </div>
 
-                  {voiceStatus.interimTranscript && (
-                    <div className="interim-pill">“{voiceStatus.interimTranscript}…”</div>
+                  {voiceStatus.state !== 'off' && (
+                    <div className={`voice-live-strip state-${voiceStatus.state}`} role="status">
+                      <div className="voice-live-left">
+                        <span className="voice-pulse-dot" />
+                        <span className="voice-state-label">
+                          {voiceStatus.state === 'loading'
+                            ? 'WARMING VAD + WHISTLE'
+                            : voiceStatus.state === 'speaking-user'
+                              ? 'USER SPEAKING · BARGE-IN'
+                              : voiceStatus.state === 'transcribing'
+                                ? 'WHISTLE WASM · DECODING'
+                                : voiceStatus.state === 'speaking-coach'
+                                  ? 'KOKORO-82M · SPEAKING'
+                                  : 'HANDS-FREE · VAD LIVE'}
+                        </span>
+                      </div>
+                      <div className="voice-meter" aria-hidden="true">
+                        {[0.38, 0.72, 1.0, 0.64, 0.92, 0.84, 1.0, 0.58, 0.76, 0.44].map((w, idx) => {
+                          const base =
+                            voiceStatus.state === 'speaking-coach'
+                              ? 0.58
+                              : voiceStatus.state === 'transcribing'
+                                ? 0.34
+                                : Math.max(0.14, voiceStatus.level);
+                          const h = Math.max(3, Math.min(14, Math.round(base * w * 14)));
+                          return <span key={idx} className="voice-meter-bar" style={{ height: `${h}px` }} />;
+                        })}
+                      </div>
+                      <span className="voice-engine-tag">{voiceStatus.sttBackend}</span>
+                    </div>
                   )}
+
+                  {voiceStatus.state !== 'off' &&
+                    (voiceStatus.interimTranscript || latestVoiceCandidateMsg) && (
+                      <div className="interim-pill">
+                        <span className="voice-you-tag">You · Voice:</span>{' '}
+                        “{voiceStatus.interimTranscript || latestVoiceCandidateMsg?.text}”
+                      </div>
+                    )}
 
                   <div
                     className="interviewer-prompt"

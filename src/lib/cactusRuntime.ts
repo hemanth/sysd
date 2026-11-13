@@ -57,6 +57,10 @@ const SYSTEM_DESIGN_KEYWORDS = [
   'SLA',
   'p99',
   'QPS',
+  'Lua',
+  'TTL',
+  'Fencing Token',
+  'CAS',
 ];
 
 export function buildWhistleKeywords(
