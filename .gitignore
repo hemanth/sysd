@@ -1,0 +1,12 @@
+node_modules/
+dist/
+renders/
+videos/
+test-results/
+playwright-report/
+blob-report/
+*.mp4
+*.webm
+*.gif
+*.wav
+.DS_Store
