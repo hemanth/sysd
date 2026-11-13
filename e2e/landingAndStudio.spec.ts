@@ -100,12 +100,14 @@ test.describe('sysd Drafting Sheet, Free-Flow, Reference Solutions & Opaque Runt
     await expect(solutionTab).toBeVisible();
     await solutionTab.click();
 
+    await expect(page.getByText('Capacity & Sizing Math')).toBeVisible();
+    await expect(page.getByText('Schema, Keys & Invariants')).toBeVisible();
     await expect(page.getByText('Write Path Lifecycle')).toBeVisible();
     await expect(page.getByText('Staff+ Failure & Scale Defenses')).toBeVisible();
 
     await page.locator('#stamp-solution-btn').click();
-    await expect(page.locator('.topology-badge')).toContainText('7 nodes');
-    await expect(page.locator('.topology-badge')).toContainText('7 edges');
+    await expect(page.locator('.topology-badge')).toContainText('9 nodes');
+    await expect(page.locator('.topology-badge')).toContainText('10 edges');
   });
 
   test('Opaque background model preloading runs with zero manual model pickers or console errors', async ({

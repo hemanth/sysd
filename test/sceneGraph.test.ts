@@ -111,10 +111,12 @@ describe('Architecture Scene Graph & Interview Engine', () => {
 
       const sol = ARCHETYPE_SOLUTIONS[ch.id];
       expect(sol).toBeDefined();
-      expect(sol.nodes.length).toBeGreaterThanOrEqual(5);
-      expect(sol.edges.length).toBeGreaterThanOrEqual(4);
+      expect(sol.nodes.length).toBeGreaterThanOrEqual(9);
+      expect(sol.edges.length).toBeGreaterThanOrEqual(8);
+      expect(sol.capacityMath.length).toBeGreaterThanOrEqual(3);
+      expect(sol.schemaAndKeys.length).toBeGreaterThanOrEqual(3);
       const skeletons = buildSolutionExcalidrawSkeletons(sol, false);
-      expect(skeletons.length).toBe(sol.nodes.length + sol.edges.length);
+      expect(skeletons.length).toBeGreaterThan(sol.nodes.length + sol.edges.length);
     }
     expect(INTERVIEW_PLAYBOOK.length).toBeGreaterThanOrEqual(9);
   });

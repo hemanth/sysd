@@ -89,8 +89,23 @@ export function extractTopology(
   const textByContainer = new Map<string, string[]>();
   const standaloneTexts: RawExcalidrawElement[] = [];
 
+  const specCardIds = new Set(
+    active.filter((el) => el.customData?.role === 'spec_card').map((el) => el.id),
+  );
+
   for (const el of active) {
+    if (
+      el.customData?.role === 'zone' ||
+      el.customData?.role === 'banner' ||
+      el.customData?.role === 'spec_card'
+    ) {
+      continue;
+    }
     if (el.type === 'text' && el.text?.trim()) {
+      if (el.customData?.role === 'spec_note' || (el.containerId && specCardIds.has(el.containerId))) {
+        standaloneTexts.push({ ...el, customData: { role: 'spec_note' } });
+        continue;
+      }
       if (el.containerId) {
         const list = textByContainer.get(el.containerId) ?? [];
         list.push(el.text.trim());
@@ -106,6 +121,13 @@ export function extractTopology(
   const usedStandaloneIds = new Set<string>();
 
   for (const el of active) {
+    if (
+      el.customData?.role === 'zone' ||
+      el.customData?.role === 'banner' ||
+      el.customData?.role === 'spec_card'
+    ) {
+      continue;
+    }
     if (!shapeTypes.has(el.type)) continue;
     const width = Math.abs(el.width ?? 140);
     const height = Math.abs(el.height ?? 68);
@@ -116,6 +138,7 @@ export function extractTopology(
 
     const boundLines = [...(textByContainer.get(el.id) ?? [])];
     for (const t of standaloneTexts) {
+      if (t.customData?.role === 'spec_note') continue;
       const tx = t.x + (t.width ?? 0) / 2;
       const ty = t.y + (t.height ?? 0) / 2;
       if (tx >= x - 8 && tx <= x + width + 8 && ty >= y - 8 && ty <= y + height + 8) {

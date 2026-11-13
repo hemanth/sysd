@@ -801,22 +801,31 @@ export function App() {
   }, [challenge, isDark]);
 
   const handleStampReferenceSolution = useCallback(() => {
-    const api = excalidrawApiRef.current;
-    if (!api || !activeSolution) return;
-    const skeletons = buildSolutionExcalidrawSkeletons(activeSolution, isDark);
-    const created = convertToExcalidrawElements(skeletons as any);
-    api.updateScene({ elements: created });
-    api.scrollToContent?.(created, { fitToViewport: true });
-    const nextG = extractTopology(created as RawExcalidrawElement[], challenge);
-    latestContextRef.current.graph = nextG;
-    setGraph(nextG);
-    setStage('hardening');
-    setMobilePane('canvas');
-    pushCoachPrompt(
-      `Reference blueprint for ${challenge.title} loaded (${nextG.nodes.length} nodes, ${nextG.edges.length} edges). Walk me through the critical bottleneck path.`,
-      'hardening',
-      'Reference Blueprint',
-    );
+    if (!activeSolution) return;
+    const runStamp = (attempt = 0) => {
+      const api = excalidrawApiRef.current;
+      if (!api) {
+        if (attempt < 15) setTimeout(() => runStamp(attempt + 1), 60);
+        return;
+      }
+      const skeletons = buildSolutionExcalidrawSkeletons(activeSolution, isDark);
+      const created = convertToExcalidrawElements(skeletons as any);
+      api.updateScene({ elements: created });
+      requestAnimationFrame(() => {
+        api.scrollToContent?.(created, { fitToViewport: true, viewportZoomFactor: 0.88 } as any);
+      });
+      const nextG = extractTopology(created as RawExcalidrawElement[], challenge);
+      latestContextRef.current.graph = nextG;
+      setGraph(nextG);
+      setStage('hardening');
+      setMobilePane('canvas');
+      pushCoachPrompt(
+        `Reference blueprint for ${challenge.title} loaded (${nextG.nodes.length} nodes, ${nextG.edges.length} edges). Walk me through the critical bottleneck path.`,
+        'hardening',
+        'Reference Blueprint',
+      );
+    };
+    runStamp(0);
   }, [activeSolution, challenge, isDark, pushCoachPrompt]);
 
   useEffect(() => {
@@ -1708,20 +1717,43 @@ export function App() {
           ) : railTab === 'solution' && activeSolution ? (
             <div className="rail-body">
               <div className="spec-section">
-                <div className="spec-heading">Reference Architecture Blueprint</div>
+                <div className="spec-heading">Principal Reference Blueprint</div>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--fg-primary)' }}>
                   {activeSolution.headline}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                  <span className="tag-pill">{activeSolution.nodes.length} components</span>
+                  <span className="tag-pill">{activeSolution.edges.length} data/control flows</span>
+                  <span className="tag-pill">{activeSolution.planes.length} planes</span>
                 </div>
                 <button
                   type="button"
                   id="stamp-solution-btn"
                   className="pill-btn primary"
-                  style={{ alignSelf: 'flex-start', marginTop: 4 }}
+                  style={{ alignSelf: 'flex-start', marginTop: 6 }}
                   onClick={handleStampReferenceSolution}
                 >
-                  <span>Stamp Reference Topology on Canvas</span>
+                  <span>Stamp Full Blueprint on Canvas</span>
                   <IconArrowRight size={13} />
                 </button>
+              </div>
+
+              <div className="spec-section">
+                <div className="spec-heading">Capacity &amp; Sizing Math</div>
+                <ul className="spec-list">
+                  {activeSolution.capacityMath.map((m, i) => (
+                    <li key={i}>{m}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="spec-section">
+                <div className="spec-heading">Schema, Keys &amp; Invariants</div>
+                {activeSolution.schemaAndKeys.map((line, i) => (
+                  <div key={i} className="code-line">
+                    {line}
+                  </div>
+                ))}
               </div>
 
               <div className="spec-section">
